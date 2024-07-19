@@ -11,8 +11,8 @@ class CreateMahasiswasTable extends Migration
     {
         Schema::create('mahasiswas', function (Blueprint $table) {
             $table->id();
-            $table->string('nama');
-            $table->string('nip')->unique();
+            $table->string('nama', 25);
+            $table->string('nip', 12)->unique();
             $table->string('universitas');
             $table->text('keterangan')->nullable();
             $table->timestamps(); // Tambahkan timestamps() untuk created_at dan updated_at

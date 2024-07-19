@@ -3,8 +3,8 @@
 @section('title', 'Data Mahasiswa')
 
 @section('content')
-    <div class="container mx-auto py-12 p-6">
-        <div class="flex justify-between items-center mb-4">
+    <div class="container mx-auto p-4">
+        <div class="flex justify-between items-center mb-10">
             <h1 class="text-2xl font-bold mx-auto">Data Mahasiswa</h1>
             <a href="{{ route('mahasiswa.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full">Tambah Data</a>
         </div>
@@ -26,49 +26,11 @@
                     </div>
                 </div>
             @endforeach
-        </div>        
-
-    {{-- <!-- Modal -->
-    <div id="myModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3">
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Tambah Data</h3>
-                <div class="mt-2 px-7 py-3">
-                    <form action="{{ route('mahasiswa.store') }}" method="POST">
-                        @csrf
-                        <div class="mb-4">
-                            <label for="nama" class="block text-sm font-medium text-gray-700">Nama</label>
-                            <input type="text" name="nama" id="nama" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
-                        <div class="mb-4">
-                            <label for="nip" class="block text-sm font-medium text-gray-700">NIP</label>
-                            <input type="text" name="nip" id="nip" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
-                        <div class="mb-4">
-                            <label for="universitas" class="block text-sm font-medium text-gray-700">Universitas</label>
-                            <input type="text" name="universitas" id="universitas" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        </div>
-                        <div class="mb-4">
-                            <label for="keterangan" class="block text-sm font-medium text-gray-700">Keterangan</label>
-                            <textarea name="keterangan" id="keterangan" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
-                        </div>
-                        <div class="flex justify-end">
-                            <button type="button" onclick="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded mr-2">Batal</button>
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">Simpan</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+        </div>       
+        
+        <div class="pagination-wrapper p-6">
+            {{ $mahasiswas->links() }}
         </div>
+
     </div>
-
-    <script>
-        function openModal() {
-            document.getElementById('myModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('myModal').classList.add('hidden');
-        }
-    </script> --}}
 @endsection

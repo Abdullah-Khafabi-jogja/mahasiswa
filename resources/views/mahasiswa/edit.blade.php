@@ -11,9 +11,9 @@
         <div class="flex justify-center mb-6">
             <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
                 @if($errors->any())
-                    <div class="alert alert-danger mb-4">
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
                         <ul>
-                            @foreach($errors->all() as $error)
+                            @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
                         </ul>

@@ -9,17 +9,19 @@ class MahasiswaController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->query('search');
+        $search = $request->query('search', ''); // Default to empty string if no search term is provided
 
-        // Query pencarian data berdasarkan nama
-        $mahasiswas = Mahasiswa::where('nama', 'like', "%$search%")->get();
-        $mahasiswas = Mahasiswa::where('nip', 'like', "%$search%")->get();
-        $mahasiswas = Mahasiswa::where('universitas', 'like', "%$search%")->get();
-        $mahasiswas = Mahasiswa::where('keterangan', 'like', "%$search%")->get();
-        //
+        // Query pencarian data berdasarkan nama, nip, universitas, atau keterangan
+        $mahasiswas = Mahasiswa::where('nama', 'like', "%$search%")
+                            ->orWhere('nip', 'like', "%$search%")
+                            ->orWhere('universitas', 'like', "%$search%")
+                            ->orWhere('keterangan', 'like', "%$search%")
+                            ->simplePaginate(6);
+
         return view('mahasiswa.index', compact('mahasiswas', 'search'));
     }
 
+    
     public function create()
     {
         return view('mahasiswa.create');
@@ -30,7 +32,7 @@ class MahasiswaController extends Controller
         // Validasi data input
         $request->validate([
             'nama' => 'required|string|max:255',
-            'nip' => 'required|string|unique:mahasiswas,nip',
+            'nip' => 'required|string|numeric|unique:mahasiswas,nip',
             'universitas' => 'required|string|max:255',
             'keterangan' => 'nullable|string',
         ]);
@@ -47,7 +49,6 @@ class MahasiswaController extends Controller
         return redirect()->route('mahasiswa.index')->with('success', 'Data mahasiswa berhasil ditambahkan.');
     }
 
-
     public function edit($id)
     {
         $mahasiswa = Mahasiswa::findOrFail($id);
@@ -60,7 +61,7 @@ class MahasiswaController extends Controller
 
         $request->validate([
             'nama' => 'required|string|max:255',
-            'nip' => 'required|string|max:255|unique:mahasiswas,nip,' . $mahasiswa->id,
+            'nip' => 'required|string|numeric|unique:mahasiswas,nip,' . $mahasiswa->id,
             'universitas' => 'required|string|max:255',
             'keterangan' => 'nullable|string',
         ]);
@@ -91,5 +92,4 @@ class MahasiswaController extends Controller
         }
     }
 
-    
 }
