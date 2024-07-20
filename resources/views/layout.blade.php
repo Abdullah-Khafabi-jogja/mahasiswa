@@ -37,7 +37,6 @@
                         @endif
                     @endif
                 </div>
-                
             </div>
         </header>
 

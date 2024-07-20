@@ -7,89 +7,150 @@ use Illuminate\Http\Request;
 
 class MahasiswaController extends Controller
 {
+    /**
+     * Menampilkan daftar mahasiswa dengan pencarian.
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
+     */
     public function index(Request $request)
     {
-        $search = $request->query('search', ''); // Default to empty string if no search term is provided
+        // Mengambil query pencarian dari URL (defaultnya adalah string kosong jika tidak ada)
+        $search = $request->query('search', '');
 
-        // Query pencarian data berdasarkan nama, nip, universitas, atau keterangan
+        // Mengambil data mahasiswa dengan pencarian berdasarkan nama, nip, universitas, atau keterangan
         $mahasiswas = Mahasiswa::where('nama', 'like', "%$search%")
                             ->orWhere('nip', 'like', "%$search%")
                             ->orWhere('universitas', 'like', "%$search%")
                             ->orWhere('keterangan', 'like', "%$search%")
-                            ->simplePaginate(6);
+                            ->simplePaginate(6); // Menampilkan 6 data per halaman
 
+        // Mengembalikan tampilan 'mahasiswa.index' dengan data mahasiswa dan query pencarian
         return view('mahasiswa.index', compact('mahasiswas', 'search'));
     }
 
-    
+    /**
+     * Menampilkan formulir untuk menambahkan mahasiswa baru.
+     *
+     * @return \Illuminate\View\View
+     */
     public function create()
     {
+        // Mengembalikan tampilan 'mahasiswa.create' untuk menampilkan formulir
         return view('mahasiswa.create');
     }
 
+    /**
+     * Menyimpan data mahasiswa baru ke database.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(Request $request)
     {
-        // Validasi data input
+        // Validasi data input dari formulir
         $request->validate([
             'nama' => 'required|string|max:255',
-            'nip' => 'required|string|numeric|unique:mahasiswas,nip',
+            'nip' => 'required|string|numeric|unique:mahasiswas,nip', // Validasi unik untuk 'nip'
             'universitas' => 'required|string|max:255',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg, gif|max:2048', // Validasi foto (jika ada)
             'keterangan' => 'nullable|string',
         ]);
 
-        // Simpan data ke database
+        // Menyimpan foto (jika ada) ke direktori 'fotos' dalam penyimpanan publik
+        $path = $request->file('foto') ? $request->file('foto')->store('fotos', 'public') : null;
+
+        // Menyimpan data mahasiswa ke database
         Mahasiswa::create([
             'nama' => $request->nama,
             'nip' => $request->nip,
             'universitas' => $request->universitas,
+            'foto' => $path,
             'keterangan' => $request->keterangan,
         ]);
 
-        // Redirect dengan pesan sukses
+        // Mengalihkan ke halaman daftar mahasiswa dengan pesan sukses
         return redirect()->route('mahasiswa.index')->with('success', 'Data mahasiswa berhasil ditambahkan.');
     }
 
+    /**
+     * Menampilkan formulir untuk mengedit data mahasiswa yang ada.
+     *
+     * @param int $id
+     * @return \Illuminate\View\View
+     */
     public function edit($id)
     {
+        // Mengambil data mahasiswa berdasarkan ID, jika tidak ditemukan akan memunculkan 404 error
         $mahasiswa = Mahasiswa::findOrFail($id);
+
+        // Mengembalikan tampilan 'mahasiswa.edit' dengan data mahasiswa untuk diedit
         return view('mahasiswa.edit', compact('mahasiswa'));
     }
 
+    /**
+     * Memperbarui data mahasiswa yang ada di database.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(Request $request, $id)
     {
+        // Mengambil data mahasiswa berdasarkan ID, jika tidak ditemukan akan memunculkan 404 error
         $mahasiswa = Mahasiswa::findOrFail($id);
 
+        // Validasi data input dari formulir
         $request->validate([
             'nama' => 'required|string|max:255',
-            'nip' => 'required|string|numeric|unique:mahasiswas,nip,' . $mahasiswa->id,
+            'nip' => 'required|string|numeric|unique:mahasiswas,nip,' . $mahasiswa->id, // Validasi unik kecuali untuk mahasiswa yang sedang diedit
             'universitas' => 'required|string|max:255',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg, gif|max:2048', // Validasi foto (jika ada)
             'keterangan' => 'nullable|string',
         ]);
 
+        // Menyimpan foto (jika ada) ke direktori 'fotos' dalam penyimpanan publik
+        // Jika tidak ada foto baru, menggunakan foto yang lama
+        $path = $request->file('foto') ? $request->file('foto')->store('fotos', 'public') : $mahasiswa->foto;
+
         try {
+            // Memperbarui data mahasiswa di database
             $mahasiswa->update([
                 'nama' => $request->nama,
                 'nip' => $request->nip,
                 'universitas' => $request->universitas,
+                'foto' => $path,
                 'keterangan' => $request->keterangan,
             ]);
 
+            // Mengalihkan ke halaman daftar mahasiswa dengan pesan sukses
             return redirect()->route('mahasiswa.index')->with('success', 'Mahasiswa updated successfully.');
         } catch (\Exception $e) {
+            // Mengalihkan kembali ke halaman sebelumnya dengan pesan error jika terjadi kesalahan
             return redirect()->back()->withErrors(['error' => 'Failed to update Mahasiswa. Please try again.']);
         }
     }
 
+    /**
+     * Menghapus data mahasiswa dari database.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy($id)
     {
+        // Mengambil data mahasiswa berdasarkan ID, jika tidak ditemukan akan memunculkan 404 error
         $mahasiswa = Mahasiswa::findOrFail($id);
 
         try {
+            // Menghapus data mahasiswa dari database
             $mahasiswa->delete();
+
+            // Mengalihkan ke halaman daftar mahasiswa dengan pesan sukses
             return redirect()->route('mahasiswa.index')->with('success', 'Mahasiswa deleted successfully.');
         } catch (\Exception $e) {
+            // Mengalihkan kembali ke halaman sebelumnya dengan pesan error jika terjadi kesalahan
             return redirect()->back()->withErrors(['error' => 'Failed to delete Mahasiswa. Please try again.']);
         }
     }
-
 }
