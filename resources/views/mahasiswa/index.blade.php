@@ -62,7 +62,6 @@
             {{ $mahasiswas->links() }}
         </div>
 
-
         {{-- Modal Tambah Data --}}
         <div id="createModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center hidden">
             <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-lg">
@@ -166,7 +165,6 @@
             </div>
         </div>
         
-
         <!-- Modal Konfirmasi Hapus -->
         <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center hidden">
             <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -257,9 +255,18 @@
                 const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
                 
                 if (file && !allowedTypes.includes(file.type)) {
-                    alert('File must be a JPEG, PNG, or GIF image.');
+                    showAlert('File must be a JPEG, PNG, or GIF image.');
                     input.value = ''; // Hapus file yang tidak valid
                 }
+            }
+
+            function showAlert(message) {
+                const alertModal = document.getElementById('alertModal');
+                const modalMessage = document.getElementById('modalMessage');
+                
+                modalMessage.textContent = message;
+                alertModal.classList.remove('hidden');
+                alertModal.style.display = 'flex';
             }
 
             document.getElementById('foto')?.addEventListener('change', function() {
