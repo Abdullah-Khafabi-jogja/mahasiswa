@@ -44,21 +44,6 @@
             @yield('content')
         </div>
     </div>
-
-    <!-- Alert -->
-    @if(session('success'))
-    <div id="alert" class="fixed inset-x-0 top-0 z-50 px-4 py-2 bg-green-500 text-white text-center">
-        {{ session('success') }}
-    </div>
-    <script>
-        // Kode agar alert menghilang setelah beberapa detik
-        setTimeout(function() {
-            var alertElement = document.getElementById('alert');
-            alertElement.remove();
-        }, 10000); // 10 seconds
-    </script>
-    @endif
-
 </body>
 
 </html>

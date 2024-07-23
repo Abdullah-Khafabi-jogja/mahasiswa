@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class MahasiswaController extends Controller
 {
@@ -51,26 +52,31 @@ class MahasiswaController extends Controller
         // Validasi data input dari formulir
         $request->validate([
             'nama' => 'required|string|max:255',
-            'nip' => 'required|string|numeric|unique:mahasiswas,nip', // Validasi unik untuk 'nip'
+            'nip' => 'required|numeric|digits_between:1,12|unique:mahasiswas,nip',
             'universitas' => 'required|string|max:255',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg, gif|max:2048', // Validasi foto (jika ada)
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validasi foto (jika ada)
             'keterangan' => 'nullable|string',
         ]);
 
         // Menyimpan foto (jika ada) ke direktori 'fotos' dalam penyimpanan publik
-        $path = $request->file('foto') ? $request->file('foto')->store('fotos', 'public') : null;
+        $path = $this->storeFoto($request->file('foto'));
 
-        // Menyimpan data mahasiswa ke database
-        Mahasiswa::create([
-            'nama' => $request->nama,
-            'nip' => $request->nip,
-            'universitas' => $request->universitas,
-            'foto' => $path,
-            'keterangan' => $request->keterangan,
-        ]);
+        try {
+            // Menyimpan data mahasiswa ke database
+            Mahasiswa::create([
+                'nama' => $request->nama,
+                'nip' => $request->nip,
+                'universitas' => $request->universitas,
+                'foto' => $path,    
+                'keterangan' => $request->keterangan,
+            ]);
 
-        // Mengalihkan ke halaman daftar mahasiswa dengan pesan sukses
-        return redirect()->route('mahasiswa.index')->with('success', 'Data mahasiswa berhasil ditambahkan.');
+            // Mengalihkan ke halaman daftar mahasiswa dengan pesan sukses
+            return redirect()->route('mahasiswa.index')->with('success', 'Data Mahasiswa berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            // Mengalihkan kembali ke halaman sebelumnya dengan pesan error jika terjadi kesalahan
+            return redirect()->back()->withInput()->withErrors(['error' => 'Failed to add Mahasiswa. Please try again.'])->with('showCreateModal', true);
+        }
     }
 
     /**
@@ -103,15 +109,15 @@ class MahasiswaController extends Controller
         // Validasi data input dari formulir
         $request->validate([
             'nama' => 'required|string|max:255',
-            'nip' => 'required|string|numeric|unique:mahasiswas,nip,' . $mahasiswa->id, // Validasi unik kecuali untuk mahasiswa yang sedang diedit
+            'nip' => 'required|numeric|digits_between:1,12|unique:mahasiswas,nip,' . $id,
             'universitas' => 'required|string|max:255',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg, gif|max:2048', // Validasi foto (jika ada)
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validasi foto (jika ada)
             'keterangan' => 'nullable|string',
         ]);
 
         // Menyimpan foto (jika ada) ke direktori 'fotos' dalam penyimpanan publik
         // Jika tidak ada foto baru, menggunakan foto yang lama
-        $path = $request->file('foto') ? $request->file('foto')->store('fotos', 'public') : $mahasiswa->foto;
+        $path = $request->hasFile('foto') ? $this->storeFoto($request->file('foto')) : $mahasiswa->foto;
 
         try {
             // Memperbarui data mahasiswa di database
@@ -124,10 +130,10 @@ class MahasiswaController extends Controller
             ]);
 
             // Mengalihkan ke halaman daftar mahasiswa dengan pesan sukses
-            return redirect()->route('mahasiswa.index')->with('success', 'Mahasiswa updated successfully.');
+            return redirect()->route('mahasiswa.index')->with('success', 'Data Mahasiswa berhasil diperbarui.');
         } catch (\Exception $e) {
             // Mengalihkan kembali ke halaman sebelumnya dengan pesan error jika terjadi kesalahan
-            return redirect()->back()->withErrors(['error' => 'Failed to update Mahasiswa. Please try again.']);
+            return redirect()->back()->withInput()->withErrors(['error' => 'Failed to update Mahasiswa. Please try again.'])->with('showEditModal', true)->with('editData', $request->all());
         }
     }
 
@@ -142,15 +148,18 @@ class MahasiswaController extends Controller
         // Mengambil data mahasiswa berdasarkan ID, jika tidak ditemukan akan memunculkan 404 error
         $mahasiswa = Mahasiswa::findOrFail($id);
 
-        try {
-            // Menghapus data mahasiswa dari database
-            $mahasiswa->delete();
-
-            // Mengalihkan ke halaman daftar mahasiswa dengan pesan sukses
-            return redirect()->route('mahasiswa.index')->with('success', 'Mahasiswa deleted successfully.');
-        } catch (\Exception $e) {
-            // Mengalihkan kembali ke halaman sebelumnya dengan pesan error jika terjadi kesalahan
-            return redirect()->back()->withErrors(['error' => 'Failed to delete Mahasiswa. Please try again.']);
+        // Menghapus foto jika ada
+        if ($mahasiswa->foto) {
+            Storage::disk('public')->delete($mahasiswa->foto);
         }
+
+        $mahasiswa->delete();
+
+        return redirect()->route('mahasiswa.index')->with('success', 'Data Mahasiswa berhasil dihapus.');
+    }
+
+    protected function storeFoto($foto)
+    {
+        return $foto ? $foto->store('fotos', 'public') : null;
     }
 }
